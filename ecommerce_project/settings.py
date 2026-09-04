@@ -2,30 +2,38 @@ import os
 from pathlib import Path
 from datetime import timedelta
 import socket
-
+import dj_database_url
 # ------------------------------
 # BASE CONFIGURATION
 # ------------------------------
-
 BASE_DIR = Path(__file__).resolve().parent.parent
+# Load SECRET_KEY from environment in production, fallback for dev
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-secret-key-here-change-in-production')
 
-SECRET_KEY = 'django-insecure-your-secret-key-here-change-in-production'
-DEBUG = True
+# Load DEBUG mode dynamically from environment (defaults to True locally)
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
 # ------------------------------
 # ALLOWED HOSTS
-# ------------------------------
-# Add to your ALLOWED_HOSTS
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    'testserver',  # Add this for testing
-    '192.168.1.*',
-]
 
-# Append the current machine hostname
-hostname = socket.gethostname()
-ALLOWED_HOSTS.append(hostname)
+# Parse ALLOWED_HOSTS from env if supplied, else fallback to local defaults
+env_hosts = os.environ.get('ALLOWED_HOSTS')
+if env_hosts:
+    ALLOWED_HOSTS = [host.strip() for host in env_hosts.split(',') if host.strip()]
+else:
+    ALLOWED_HOSTS = [
+        'localhost',
+        '127.0.0.1',
+        'testserver',
+        '192.168.1.*',
+    ]
+
+# Append local machine hostname for local networks
+    try:
+        hostname = socket.gethostname()
+        ALLOWED_HOSTS.append(hostname)
+    except Exception:
+        pass
 
 # ------------------------------
 # INSTALLED APPS
@@ -59,6 +67,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise serves static files efficiently in prod
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -93,18 +102,29 @@ WSGI_APPLICATION = 'ecommerce_project.wsgi.application'
 
 # ------------------------------
 # DATABASE CONFIGURATION
-# ------------------------------
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'ecommerce_db'),
-        'USER': os.environ.get('DB_USER', 'ecommerce_user'),
-        'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+# Detect DATABASE_URL supplied by cloud providers (Render/Railway), otherwise fallback to individual vars
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME', 'ecommerce_db'),
+            'USER': os.environ.get('DB_USER', 'ecommerce_user'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', 'your-password'),
+            'HOST': os.environ.get('DB_HOST', 'localhost'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+        }
+    }
 
 # ------------------------------
 # AUTHENTICATION CONFIGURATION
@@ -145,6 +165,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
 ]
 
+env_cors = os.environ.get('CORS_ALLOWED_ORIGINS')
+if env_cors:
+    CORS_ALLOWED_ORIGINS.extend([origin.strip() for origin in env_cors.split(',') if origin.strip()])
 # ------------------------------
 # STATIC AND MEDIA FILES
 # ------------------------------
