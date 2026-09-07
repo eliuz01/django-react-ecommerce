@@ -114,6 +114,7 @@ http://127.0.0.1:8000
 
 ```bash
 docker run --name ecommerce-db \
+  --network ecommerce-network \
   -e POSTGRES_DB=ecommerce_db \
   -e POSTGRES_USER=ecommerce_user \
   -e POSTGRES_PASSWORD=your-password \
