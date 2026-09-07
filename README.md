@@ -209,6 +209,21 @@ python manage.py test
 ![Django admin](screenshots/django-admin.png)
 
 
+## Deployment & Pipeline Verification
+
+### CI/CD Workflow Execution
+![GitHub Actions Success](screenshots/01-github-actions-success.png)
+
+### Live Web Service Status (Render)
+![Render Dashboard Live](screenshots/02-render-dashboard-live.png)
+
+### Production Django Admin Interface
+![Django Admin Live](screenshots/03-django-admin-live.png)
+
+### Production API Endpoint Response
+![API Cart Endpoint](screenshots/04-api-cart-response-render-live.png)
+
+
 ## License
 
 MIT License
