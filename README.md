@@ -1,27 +1,40 @@
-# Django E-Commerce Backend API
+# Django E-Commerce Backend API & DevOps Pipeline
 
-A Django REST API backend for an e-commerce application. The project uses PostgreSQL for data storage and Docker for containerization.
+A production-ready Django REST API backend for an e-commerce application. This project features containerization with Docker, managed PostgreSQL database provisioning on Render, and fully automated continuous deployment (CI/CD) via GitHub Actions.
 
-## Tech Stack
+## Live Production Links
 
-* Python 3.12
-* Django 5.2
-* Django REST Framework
-* PostgreSQL 15
-* Docker
-* JWT Authentication
+* **Live API Base URL:** `https://django-react-ecommerce-kx8w.onrender.com/`
+* **Django Admin Panel:** `https://django-react-ecommerce-kx8w.onrender.com/admin/`
+
+---
+
+## Tech Stack & Infrastructure
+
+* **Language & Framework:** Python 3.12, Django 5.2, Django REST Framework
+* **Production Application Server:** Gunicorn, WhiteNoise (Static File Serving)
+* **Authentication:** JWT (Django REST Framework SimpleJWT)
+* **Database:** PostgreSQL 15 (Managed on Render)
+* **Containerization:** Docker
+* **Hosting Platform:** Render (PaaS - US West Oregon)
+* **CI/CD Automation:** GitHub Actions (Deploy Hook Trigger)
+
+---
 
 ## Project Structure
 
 ```text
 django-react-ecommerce/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml      # GitHub Actions CI/CD workflow
 ├── accounts/
 ├── cart/
 ├── orders/
 ├── products/
 ├── testing/
 ├── ecommerce_project/
-├── Dockerfile
+├── Dockerfile              # Production Docker build configuration
 ├── manage.py
 ├── requirements.txt
 ├── README.md
@@ -33,13 +46,14 @@ django-react-ecommerce/
 * Python 3.12+
 * Docker Desktop
 * Git
+* Render Account & GitHub Account
 
 ## Local Setup
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/eliuz01/django-react-ecommerce.git
+git clone [https://github.com/eliuz01/django-react-ecommerce.git](https://github.com/eliuz01/django-react-ecommerce.git)
 cd django-react-ecommerce
 ```
 
