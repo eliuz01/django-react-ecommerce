@@ -268,3 +268,93 @@ To streamline deployment workflows, ensure application reliability, and reduce m
 * **Mechanism:** Render continuously performs HTTP ping checks against the root application routes (`/admin/` and `/api/cart/`). If Gunicorn encounters an unhandled exception or the container crashes (e.g., due to memory spikes or unhandled runtime errors), the platform automatically restarts the Docker container.
   
 * **Benefit:** Guarantees self-healing infrastructure, keeping application downtime to a minimum without requiring manual sysadmin intervention during transient failures.
+
+
+## Step 3: Incident Response Guide
+
+This guide provides operational procedures for diagnosing and resolving common deployment and infrastructure failures encountered in the production environment.
+
+### 1. CI/CD Build & Deployment Failure
+
+**Probable root causes:**
+
+- Syntax errors in code or tests
+- Broken dependencies in `requirements.txt`
+- Docker build failure
+  - Missing system packages
+  - Invalid `Dockerfile` syntax
+
+**Diagnostic & resolution steps:**
+
+1. Inspect the **GitHub Actions** execution logs to identify the failing step.
+2. Check the **Render Dashboard Logs** for Docker build errors.
+3. Reproduce the build locally:
+
+   ```bash
+   docker build -t test-app .
+4. Fix the identified issue.
+5. Commit the changes and push to main to re-trigger the pipeline.
+
+
+### 2. Database Connection Error (HTTP 500)
+
+**Probable root causes:**
+- Invalid or missing `DATABASE_URL` environment variable
+- Production PostgreSQL database is down or restarting
+- Database connections are exhausted
+- Network policy is blocking database access
+
+**Diagnostic & resolution steps:**
+1. Check the application logs in Render for:
+   - `psycopg2.OperationalError`
+   - Connection timeout errors
+2. Verify that `DATABASE_URL` is correctly configured in Render's Environment Settings.
+3. Confirm that `dj-database-url` is correctly parsing the environment variable in `settings.py`
+4. Check the PostgreSQL instance status on Render to confirm that the database is active.
+
+
+### 3. Static Assets Missing / Unstyled Admin (HTTP 404)
+**Probable root causes:**
+- Django `collectstatic` failed during the container build
+- WhiteNoise middleware is missing or misconfigured
+- `STATIC_ROOT` is incorrectly configured
+
+**Diagnostic & resolution steps:**
+1. Verify that `WhiteNoiseMiddleware` is listed directly below `SecurityMiddleware` in `settings.py`
+2. Ensure `STATIC_ROOT` and `STATIC_URL` are defined.
+3. Confirm that `collectstatic` runs during deployment
+4. Trigger a manual clean redeploy on Render.
+
+
+### Step 4: Architecture Diagram
+
+```mermaid
+graph TD
+    %% User Layer
+    Client[Users / Client Applications] -->|HTTPS Requests| HostPlatform
+
+    %% Cloud Infrastructure (Render PaaS)
+    subgraph HostPlatform [Cloud Platform: Render PaaS]
+        Router[Load Balancer & SSL Termination]
+        
+        subgraph Container [Docker Runtime Engine]
+            Gunicorn[Gunicorn WSGI Server]
+            Django[Django 5.2 Application]
+            WhiteNoise[WhiteNoise Static Middleware]
+            
+            Gunicorn --> Django
+            Django --> WhiteNoise
+        end
+
+        Database[(Managed PostgreSQL Database)]
+        
+        Router -->|Proxy Requests| Gunicorn
+        Django <-->|ORM Connections via dj-database-url| Database
+    end
+
+    %% Developer & CI/CD Pipeline
+    Developer[Developer] -->|Git Push to main| GitHubRepo[GitHub Repository]
+    GitHubRepo -->|Triggers Action Workflow| GHActions[GitHub Actions CI/CD Pipeline]
+    GHActions -->|Executes Webhook POST| DeployHook[Render Deploy Hook]
+    DeployHook -->|Triggers Auto-Build| Container
+    
