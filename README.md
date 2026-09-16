@@ -246,6 +246,25 @@ Monitoring for the deployed application is handled through Render’s native obs
 
 * **Error Logging & Traffic:** Monitored via the **Logs** tab, streaming real-time Gunicorn access logs and Django HTTP status responses (e.g., `200 OK`, `401 Unauthorized`, `500 Server Error`).
   
-![Render Events Monitoring](screenshots/logs.png)
+![Error Logging & Traffic](screenshots/logs.png)
 
 * **Network & Resource Metrics:** Monitored via the **Metrics** dashboard, tracking bandwidth outbound data transfer and instance traffic spikes.
+
+### Step 2: Automation 
+
+## Step 2: Automation Improvements
+
+To streamline deployment workflows, ensure application reliability, and reduce manual operational overhead, two core automation mechanisms were implemented:
+
+### 1. Automatic Continuous Deployments via Webhooks
+* **Implementation:** Integrated GitHub Actions with Render PaaS using automated Deploy Hooks.
+* **Mechanism:** Upon a successful push or pull request merge to the `main` branch, GitHub Actions executes a POST request to Render’s deploy hook URL. Render automatically pulls the latest commit, builds the updated Docker image, and deploys it without human intervention.
+* **Benefit:** Eliminates manual SSH/deployment steps, reduces release time from minutes to seconds, and ensures that code running in production always reflects the latest validated commit on `main`.
+
+### 2. Automated Health Checks and Container Restart Policies
+
+* **Implementation:** Configured container health check probes and automated process managers (Gunicorn + Docker runtime) within the cloud platform.
+  
+* **Mechanism:** Render continuously performs HTTP ping checks against the root application routes (`/admin/` and `/api/cart/`). If Gunicorn encounters an unhandled exception or the container crashes (e.g., due to memory spikes or unhandled runtime errors), the platform automatically restarts the Docker container.
+  
+* **Benefit:** Guarantees self-healing infrastructure, keeping application downtime to a minimum without requiring manual sysadmin intervention during transient failures.
