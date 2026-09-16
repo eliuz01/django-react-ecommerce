@@ -234,3 +234,18 @@ Original project by himalnpne.
 
 Modified and containerized as part of a DevOps internship project.
 
+## Task 3: Monitoring, Automation & Incident Response
+
+## Step 1: Application Monitoring Setup
+
+Monitoring for the deployed application is handled through Render’s native observability tools:
+
+* **Application Availability**: Tracked via Render's **Events** log, which records instance startup times, continuous deployment events, and uptime status.
+  
+![Render Events Monitoring](screenshots/05-render-events-monitoring.png)
+
+* **Error Logging & Traffic:** Monitored via the **Logs** tab, streaming real-time Gunicorn access logs and Django HTTP status responses (e.g., `200 OK`, `401 Unauthorized`, `500 Server Error`).
+  
+![Render Events Monitoring](screenshots/logs.png)
+
+* **Network & Resource Metrics:** Monitored via the **Metrics** dashboard, tracking bandwidth outbound data transfer and instance traffic spikes.
